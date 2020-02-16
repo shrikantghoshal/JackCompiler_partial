@@ -4,8 +4,8 @@ public class Token {
      public enum TokenType {
          SYMBOL,
          KEYWORD,
-         IDENTIFIERS,
-         CONSTANTS,
+         IDENTIFIER,
+         CONSTANT,
          EOF;
      }
      public String lexeme;

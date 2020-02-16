@@ -41,21 +41,43 @@ public class Lexer {
             this.pushbackReader.unread(c);
         }
 
+        //EOF detection
         if (c == -1) {
             token.type = Token.TokenType.EOF;
             token.lineNumber = linNum;
             return token;
         }
 
+        //Check for keywords or identifiers
         if (Character.isLetter((char) c)) {
             token.lexeme = "";
             while ((c!=-1)&&Character.isLetter((char)c)||Character.isDigit((char)c)||c=='_'){
                 token.lexeme += (char)c;
+                pushbackReader.read();
                 c=pushbackReader.read();
                 pushbackReader.unread(c);
             }
-        token.lineNumber = 
+        token.lineNumber = linNum;
+        token.type = Token.TokenType.IDENTIFIER;
+        return token;
         }
+
+        if(Character.isDigit((char)c)){
+            token.lexeme = "";
+            while((c!=-1)&&Character.isDigit((char)c)){
+                token.lexeme += (char)c;
+                pushbackReader.read();
+                c = pushbackReader.read();
+                pushbackReader.unread(c);
+            }
+            token.type = Token.TokenType.CONSTANT;
+            return token;
+        }
+
+        token.lexeme = "";
+        token.lexeme += (char)c;
+        token.type = Token.TokenType.SYMBOL;
+        return token;
     }
 
 }
