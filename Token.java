@@ -11,5 +11,9 @@ public class Token {
      public String lexeme;
      public Integer lineNumber;
      public TokenType type;
+
+     public Token{
+         lexeme = "";
+     }
 }
 
