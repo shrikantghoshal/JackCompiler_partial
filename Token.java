@@ -1,3 +1,4 @@
+import java.io.LineNumberInputStream;
 import java.util.*;
 
 public class Token {
@@ -8,12 +9,61 @@ public class Token {
          CONSTANT,
          EOF;
      }
-     public String lexeme;
-     public Integer lineNumber;
-     public TokenType type;
+     private String lexeme;
+     private Integer lineNumber;
+     private TokenType type;
 
-     public Token{
+     public Token(){
          lexeme = "";
      }
-}
 
+     public void setNewLexeme(){
+         lexeme = "";
+     }
+
+     public void setLexeme(String lexemeRead){
+         lexeme += lexemeRead;
+     }
+
+     public void setLineNumber(Integer lineNumberCount){
+         lineNumber = lineNumberCount;
+     }
+
+     public void setTokenType(TokenType tokenRead){
+         type = tokenRead;
+     }
+
+     public String getLexeme(){
+        return lexeme;
+     }
+     public Integer getLineNumber(){
+         return lineNumber;
+     }
+     public TokenType getTokenType(){
+        return type;
+     }
+
+     public enum KeywordType{
+        CLASS,
+        CONSTRUCTOR,
+        METHOD,
+        FUNCTION,
+        INT,
+        BOOLEAN,
+        CHAR,
+        VOID,
+        VAR,
+        STATIC,
+        FIELD,
+        LET,
+        DO,
+        IF,
+        ELSE,
+        WHILE,
+        RETURN,
+        TRUE,
+        FALSE,
+        NULL,
+        THIS;
+     }
+}
