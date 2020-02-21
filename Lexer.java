@@ -1,10 +1,7 @@
-import java.beans.PersistenceDelegate;
 import java.io.*;
 
-import org.graalvm.compiler.nodes.calc.IntegerBelowNode;
-
 public class Lexer {
-    protected PushbackReader pushbackReader = null;
+    public PushbackReader pushbackReader = null;
 
     int linNum;
     int c;
@@ -29,22 +26,13 @@ public class Lexer {
         init(userInput);
     }
 
-    public void peekNextToken(Integer count) {
-        try {
-            count = this.pushbackReader.read();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        try {
-            this.pushbackReader.unread(count);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+    public void peekNextToken(Integer count) throws IOException{
+
+        count = this.pushbackReader.read();
+        this.pushbackReader.unread(count);
     }
 
-    public Token getNextToken() {
+    public Token getNextToken() throws IOException{
         Token token = new Token();
 
         peekNextToken(c);
@@ -66,10 +54,12 @@ public class Lexer {
                 peekNextToken(c);
                 if ((char) c == '/') {
                     comType = 1;
-                    if (c == '\r')
+                    if (c == '\r') {
                         linNum++;
-                    pushbackReader.read();
-                    peekNextToken(c);
+                        pushbackReader.read();
+                        peekNextToken(c);
+                        comType = 0;
+                    }
 
                 } else if ((char) c == '*') {
                     comType = 2;
@@ -78,14 +68,22 @@ public class Lexer {
                     if ((char) c == '*') {
                         peekNextToken(c);
                         if ((char) c == '/') {
-                            //to complete this
+                            linNum++;
+                            pushbackReader.read();
+                            peekNextToken(c);
+                            comType = 0;
                         } else
                             peekNextToken(c);
-                    }
+                    } else if ((char) c == '/') {
+                        linNum++;
+                        pushbackReader.read();
+                        peekNextToken(c);
+                        comType = 0;
+                    } else
+                        peekNextToken(c);
                 }
             }
         } while ((comType != 0) || (comType == 1 && (char) c != '\r'));
-//review this poo (^-^)
 
         // EOF detection
         if (c == -1) {
@@ -102,6 +100,7 @@ public class Lexer {
                 pushbackReader.read();
                 peekNextToken(c);
             }
+
 
             token.setLineNumber(linNum);
             token.setTokenType(Token.TokenType.IDENTIFIER);

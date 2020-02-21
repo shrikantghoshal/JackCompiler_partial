@@ -1,5 +1,3 @@
-import java.io.LineNumberInputStream;
-import java.util.*;
 
 public class Token {
      public enum TokenType {
@@ -12,9 +10,11 @@ public class Token {
      private String lexeme;
      private Integer lineNumber;
      private TokenType type;
+     private KeywordType keyWord;
 
      public Token(){
          lexeme = "";
+
      }
 
      public void setNewLexeme(){
@@ -33,6 +33,10 @@ public class Token {
          type = tokenRead;
      }
 
+     public void setKeywordType(KeywordType classification){
+         keyWord = classification;
+     }
+
      public String getLexeme(){
         return lexeme;
      }
@@ -41,6 +45,9 @@ public class Token {
      }
      public TokenType getTokenType(){
         return type;
+     }
+     public KeywordType getKeywordType(){
+         return keyWord;
      }
 
      public enum KeywordType{
