@@ -1,76 +1,45 @@
 
 public class Token {
-     public enum TokenType {
-         SYMBOL,
-         KEYWORD,
-         IDENTIFIER,
-         CONSTANT,
-         EOF;
-     }
-     private String lexeme;
-     private Integer lineNumber;
-     private TokenType type;
-     private KeywordType keyWord;
+    public enum TokenType {
+        SYMBOL, KEYWORD, IDENTIFIER, LITERAL, CONSTANT, EOF;
+    }
 
-     public Token(){
-         lexeme = "";
+    private String lexeme;
+    private Integer lineNumber;
+    private TokenType type;
 
-     }
 
-     public void setNewLexeme(){
-         lexeme = "";
-     }
+    public Token() {
+        lexeme = "";
 
-     public void setLexeme(String lexemeRead){
-         lexeme += lexemeRead;
-     }
+    }
 
-     public void setLineNumber(Integer lineNumberCount){
-         lineNumber = lineNumberCount;
-     }
+    public void setNewLexeme() {
+        lexeme = "";
+    }
 
-     public void setTokenType(TokenType tokenRead){
-         type = tokenRead;
-     }
+    public void setLexeme(String lexemeRead) {
+        lexeme += lexemeRead;
+    }
 
-     public void setKeywordType(KeywordType classification){
-         keyWord = classification;
-     }
+    public void setLineNumber(Integer lineNumberCount) {
+        lineNumber = lineNumberCount;
+    }
 
-     public String getLexeme(){
+    public void setTokenType(TokenType tokenRead) {
+        type = tokenRead;
+    }
+
+    public String getLexeme() {
         return lexeme;
-     }
-     public Integer getLineNumber(){
-         return lineNumber;
-     }
-     public TokenType getTokenType(){
-        return type;
-     }
-     public KeywordType getKeywordType(){
-         return keyWord;
-     }
+    }
 
-     public enum KeywordType{
-        CLASS,
-        CONSTRUCTOR,
-        METHOD,
-        FUNCTION,
-        INT,
-        BOOLEAN,
-        CHAR,
-        VOID,
-        VAR,
-        STATIC,
-        FIELD,
-        LET,
-        DO,
-        IF,
-        ELSE,
-        WHILE,
-        RETURN,
-        TRUE,
-        FALSE,
-        NULL,
-        THIS;
-     }
+    public Integer getLineNumber() {
+        return lineNumber;
+    }
+
+    public TokenType getTokenType() {
+        return type;
+    }
+
 }
