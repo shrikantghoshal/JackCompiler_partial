@@ -8,11 +8,12 @@ public class Lexer {
     int c;
 
     private ArrayList<String> keywords;
-    private ArrayList<Character> initCharArray;
+    private char[] initCharArray;
 
     public Lexer(String userInput) {
         init(userInput);
         setKeywordArray();
+
     }
 
     public Boolean init(String inputFilename) {
@@ -28,15 +29,21 @@ public class Lexer {
             System.out.println("Unable to open the specified file " + inputFilename);
         }
 
-        String[] fileID = inputFilename.split("[.]");
+        linNum = 1;
+        return true;
 
-        if (fileID[1].equals("jack")) {
-            linNum = 1;
-            return true;
-        } else{
-            System.out.println("Not a .jack file - Please enter the filepath of a valid .jack file onlto the terminal");
-            System.exit(1);
-            return false;}            
+        // Checking if the file is jack format
+        // String[] fileID = inputFilename.split("[.]");
+
+        // if (fileID[1].equals("jack")) {
+        // linNum = 1;
+        // return true;
+        // } else {
+        // System.out.println("Not a .jack file - Please enter the filepath of a valid
+        // .jack file onlto the terminal");
+        // System.exit(1);
+        // return false;
+        // }
 
     }
 
@@ -83,57 +90,58 @@ public class Lexer {
 
     public Token getNextToken() throws IOException {
         Token token = new Token();
-        
-
-        // peekNextLexeme(c);
 
         // Loop to consume any leading whitespaces
         while (Character.isWhitespace((char) c) && (c != -1)) {
             if (c == '\r')
                 linNum++;
-            pushbackReader.read();
-            
-            // c = this.pushbackReader.read();
-            // this.pushbackReader.unread(c);
+            c = pushbackReader.read();
+            pushbackReader.unread(c);
         }
 
-        // // Loop to consume any leading comments
-        // Integer comType = 0;
-        // do {
-        // if ((char) c == '/' && (c != -1)) {
-        // peekNextLexeme(c);
-        // if ((char) c == '/') {
-        // comType = 1;
-        // if (c == '\r') {
-        // linNum++;
-        // pushbackReader.read();
-        // peekNextLexeme(c);
-        // comType = 0;
-        // }
+        // Loop to consume any leading comments
+        Integer comType = 0;
+        do {
+            if ((char) c == '/' && (c != -1)) {
+                c = pushbackReader.read();
+                pushbackReader.unread(c);
+                if ((char) c == '/') { // Check for "//" Single line comment
+                    comType = 1;
+                    if (c == '\r') {
+                        linNum++;
+                        c = pushbackReader.read();
+                        pushbackReader.unread(c);
+                        comType = 0;
+                    }
 
-        // } else if ((char) c == '*') {
-        // comType = 2;
-        // pushbackReader.read();
-        // peekNextLexeme(c);
-        // if ((char) c == '*') {
-        // peekNextLexeme(c);
-        // if ((char) c == '/') {
-        // linNum++;
-        // pushbackReader.read();
-        // peekNextLexeme(c);
-        // comType = 0;
-        // } else
-        // peekNextLexeme(c);
-        // } else if ((char) c == '/') {
-        // linNum++;
-        // pushbackReader.read();
-        // peekNextLexeme(c);
-        // comType = 0;
-        // } else
-        // peekNextLexeme(c);
-        // }
-        // }
-        // } while ((comType != 0) || (comType == 1 && (char) c != '\r'));
+                } else if ((char) c == '*') { // Check for "/*" Multi-line comment start
+                    comType = 2;
+                    c = pushbackReader.read();
+                    pushbackReader.unread(c);
+                    if ((char) c == '*') { // Check for "/**" API Documentation comment
+                        c = pushbackReader.read();
+                        pushbackReader.unread(c);
+                        if ((char) c == '/') {
+                            linNum++;
+                            c = pushbackReader.read();
+                            pushbackReader.unread(c);
+                            comType = 0;
+                        } else {
+                            c = pushbackReader.read();
+                            pushbackReader.unread(c);
+                        }
+                    } else if ((char) c == '/') {
+                        linNum++;
+                        c = pushbackReader.read();
+                        pushbackReader.unread(c);
+                        comType = 0;
+                    } else {
+                        c = pushbackReader.read();
+                        pushbackReader.unread(c);
+                    }
+                }
+            }
+        } while ((comType != 0) || (comType == 1 && (char) c != '\r'));
 
         // EOF detection
         if (c == -1) {
@@ -142,40 +150,46 @@ public class Lexer {
             return token;
         }
 
-        // // Check for keywords or identifiers
-        // if (Character.isLetter((char) c)) {
-        // token.setNewLexeme();
-        // while ((c != -1) && Character.isLetterOrDigit((char) c) || c == '_') {
-        // token.setLexeme(String.valueOf((char) c));
-        // pushbackReader.read();
-        // peekNextLexeme(c);
-        // }
+        // Check for keywords or identifiers
+        if (Character.isLetter((char) c)) {
+            token.setNewLexeme();
+            while ((c != -1) && Character.isLetterOrDigit((char) c) || c == '_') {
+                token.setLexeme(String.valueOf((char) c));
+                c = pushbackReader.read();
+                pushbackReader.unread(c);
+            }
 
-        // token.setLineNumber(linNum);
-        // token.setTokenType(Token.TokenType.IDENTIFIER);
-        // return token;
-        // }
+            token.setLineNumber(linNum);
+            for (int i = 0; i < 21; i++) {
+                if (token.getLexeme().equals(keywords.get(i))) {
+                    token.setTokenType(Token.TokenType.KEYWORD);
+                    return token;
+                }
+            }
+            token.setTokenType(Token.TokenType.IDENTIFIER);
+            return token;
+        }
 
-        // if (Character.isDigit((char) c)) {
-        // token.setNewLexeme();
-        // while ((c != -1) && Character.isDigit((char) c)) {
-        // token.setLexeme(String.valueOf((char) c));
-        // pushbackReader.read();
-        // peekNextLexeme(c);
-        // }
-        // token.setTokenType(Token.TokenType.CONSTANT);
-        // return token;
-        // }
+        if (Character.isDigit((char) c)) {
+            token.setNewLexeme();
+            while ((c != -1) && Character.isDigit((char) c)) {
+                token.setLexeme(String.valueOf((char) c));
+                c = pushbackReader.read();
+                pushbackReader.unread(c);
+            }
+            token.setTokenType(Token.TokenType.CONSTANT);
+            return token;
+        }
 
-        // token.setNewLexeme();
-        // token.setLexeme(String.valueOf((char) c));
-        // token.setTokenType(Token.TokenType.SYMBOL);
-        // return token;
-        // }
-
-        // public static void main(String[] args){
-        // Lexer trialLexer = new Lexer(args[0]);
-        // }
+        token.setNewLexeme();
+        token.setLexeme(String.valueOf((char) c));
+        token.setTokenType(Token.TokenType.SYMBOL);
+        return token;
 
     }
+
+    // public static void main(String[] args){
+    // Lexer trialLexer = new Lexer(args[0]);
+
+    // }
 }
