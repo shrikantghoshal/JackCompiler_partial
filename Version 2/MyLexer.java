@@ -1,22 +1,49 @@
 import java.io.*;
 import java.util.ArrayList;
 
-
-public class Lexer {
+public class MyLexer {
     public PushbackReader pushbackReader = null;
 
     private int linNum;
     int c;
 
-    private ArrayList<String> keywords;
+    public ArrayList<MyToken> allTokens;
 
-    public Lexer(String userInput) {
-        setKeywordArray();
-        init(userInput);
-        
-        if(init(userInput)==false){
-            System.exit(0);
+    public enum Keywords {
+        // Program components
+        CLASS("class"), CONSTRUCTOR("constructor"), METHOD("method"), FUNCTION("function"),
+
+        // Primitive types
+        INT("int"), BOOL("boolean"), CHAR("char"), VOID("void"),
+
+        // Variab;e declarations
+        VAR("var"), STATIC("static"), FIELD("field"),
+
+        // Statements
+        LET("let"), DO("do"), IF("if"), ELSE("else"), WHILE("while"), RETURN("return"),
+
+        // Constant values
+        TRUE("true"), FALSE("false"), NULL("null"),
+
+        // Object reference
+        THIS("this");
+
+        private String keywordName;
+
+        Keywords(String keywordClass) {
+            this.keywordName = keywordClass;
         }
+
+        public String getKeywordName() {
+            return keywordName;
+        }
+    }
+
+    public MyLexer(String userInput) {
+        Boolean initiate = init(userInput);
+
+        if (initiate == false)
+            System.exit(0);
 
     }
 
@@ -24,6 +51,7 @@ public class Lexer {
         File inputFile = new File(inputFilename);
         if (!inputFile.exists()) {
             System.out.println("Specified file " + inputFilename + " doesn't exist");
+
             return false;
         }
 
@@ -42,61 +70,23 @@ public class Lexer {
             return true;
         } else {
             System.out.println("Not a .jack file - Please enter the filepath of a valid .jack file onlto the terminal");
-            System.exit(0);
             return false;
         }
 
-    }
-
-    public void setKeywordArray() {
-        keywords = new ArrayList<String>(21);
-
-        // Program components
-        keywords.add("class");
-        keywords.add("constructor");
-        keywords.add("method");
-        keywords.add("function");
-
-        // Primitive types
-        keywords.add("int");
-        keywords.add("boolean");
-        keywords.add("char");
-        keywords.add("void");
-
-        // Variab;e declarations
-        keywords.add("var");
-        keywords.add("static");
-        keywords.add("field");
-
-        // Statements
-        keywords.add("let");
-        keywords.add("do");
-        keywords.add("if");
-        keywords.add("else");
-        keywords.add("while");
-        keywords.add("return");
-
-        // Constant values
-        keywords.add("true");
-        keywords.add("false");
-        keywords.add("null");
-
-        // Object reference
-        keywords.add("this");
     }
 
     public int getLinNum() {
         return linNum;
     }
 
-    public Token GetNextToken() throws IOException {
-        Token token = new Token();
+    public MyToken GetNextToken() throws IOException {
+        MyToken token = new MyToken();
 
         // Loop to consume any leading whitespaces
         while (Character.isWhitespace((char) c) && (c != -1)) {
             if (c == '\r')
-                // linNum++;
-                c = pushbackReader.read();
+                linNum++;
+            c = pushbackReader.read();
         }
 
         // Loop to consume any leading comments
@@ -141,30 +131,27 @@ public class Lexer {
         // EOF detection
         if (c == -1) {
             token.setTokenType(Token.TokenType.EOF);
-            token.setLineNumber(linNum);
-            // System.out.println(token);
             return token;
         }
 
         // Check for keywords or identifiers
         if (Character.isLetter((char) c)) {
-            token.setNewLexeme();
             while ((c != -1) && Character.isLetterOrDigit((char) c) || c == '_') {
                 token.setLexeme(String.valueOf((char) c));
                 c = pushbackReader.read();
                 // pushbackReader.unread(c);
             }
 
-            token.setLineNumber(linNum);
-            for (int i = 0; i < 21; i++) {
-                if (token.getLexeme().equals(keywords.get(i))) {
-                    token.setTokenType(Token.TokenType.KEYWORD);
-                    System.out.println(token);
+            for (Keywords kwd : Keywords.values()) {
+                if (token.getLexeme().equals(kwd.getKeywordName())) {
+                    token.setTokenType(MyToken.TokenType.KEYWORD);
+                    // System.out.println(token);
                     return token;
                 }
             }
+
             token.setTokenType(Token.TokenType.IDENTIFIER);
-            System.out.println(token);
+            // System.out.println(token);
             return token;
         }
 
@@ -188,8 +175,8 @@ public class Lexer {
 
     }
 
-    public Token PeekNextToken() throws IOException {
-        Token token = new Token();
+    public MyToken PeekNextToken() throws IOException {
+        MyToken token = new MyToken();
 
         // Loop to consume any leading whitespaces
         while (Character.isWhitespace((char) c) && (c != -1)) {
@@ -263,8 +250,8 @@ public class Lexer {
             token.setLineNumber(linNum);
             for (int i = 0; i < 21; i++) {
                 if (token.getLexeme().equals(keywords.get(i))) {
-                    token.setTokenType(Token.TokenType.KEYWORD);
-                    // System.out.println(token);
+                    token.setTokenType(MyToken.TokenType.KEYWORD);
+                    System.out.println("token");
                     return token;
                 }
             }

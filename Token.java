@@ -2,6 +2,7 @@
 public class Token {
     public enum TokenType {
         SYMBOL, KEYWORD, IDENTIFIER, LITERAL, CONSTANT, EOF;
+
     }
 
     private String lexeme;
@@ -40,6 +41,11 @@ public class Token {
 
     public TokenType getTokenType() {
         return type;
+    }
+
+    @Override
+    public String toString(){
+        return String.format("< " + getLexeme() + " , " + getTokenType() + " >\n");
     }
 
 }
