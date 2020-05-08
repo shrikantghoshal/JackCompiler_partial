@@ -1,5 +1,5 @@
 import java.io.*;
-import java.util.ArrayList;
+import java.util.*;
 
 public class MyLexer {
     public PushbackReader pushbackReader = null;
@@ -8,6 +8,7 @@ public class MyLexer {
     int c;
 
     public ArrayList<MyToken> allTokens;
+    public List<String> uncommentedCode;
 
     public enum Keywords {
         // Program components
@@ -51,12 +52,13 @@ public class MyLexer {
         File inputFile = new File(inputFilename);
         if (!inputFile.exists()) {
             System.out.println("Specified file " + inputFilename + " doesn't exist");
-
+            System.exit(0);
             return false;
         }
 
         try {
-            pushbackReader = new PushbackReader(new FileReader(inputFilename));
+            removeComments(inputFile)
+            return true;
         } catch (Exception FileError) {
             System.out.println("Unable to open the specified file " + inputFilename);
             System.exit(0);
@@ -80,57 +82,10 @@ public class MyLexer {
     }
 
     public MyToken GetNextToken() throws IOException {
-        MyToken token = new MyToken();
-
-        // Loop to consume any leading whitespaces
-        while (Character.isWhitespace((char) c) && (c != -1)) {
-            if (c == '\r')
-                linNum++;
-            c = pushbackReader.read();
-        }
-
-        // Loop to consume any leading comments
-        Integer comType = 0;
-        do {
-            if ((char) c == '/' && (c != -1)) {
-                c = pushbackReader.read();
-                if ((char) c == '/') { // Check for "//" Single line comment
-                    comType = 1;
-                    if (c == '\r') {
-                        linNum++;
-                        c = pushbackReader.read();
-
-                        comType = 0;
-                    }
-
-                } else if ((char) c == '*') { // Check for "/*" Multi-line comment start
-                    comType = 2;
-                    c = pushbackReader.read();
-
-                    if ((char) c == '*') { // Check for "/**" API Documentation comment
-                        c = pushbackReader.read();
-
-                        if ((char) c == '/') {
-                            linNum++;
-                            c = pushbackReader.read();
-                            comType = 0;
-                        } else {
-                            c = pushbackReader.read();
-                        }
-                    } else if ((char) c == '/') {
-                        linNum++;
-                        c = pushbackReader.read();
-                        comType = 0;
-                    } else {
-                        c = pushbackReader.read();
-                    }
-                }
-            }
-        } while ((comType != 0) || (comType == 1 && (char) c != '\r'));
 
         // EOF detection
         if (c == -1) {
-            token.setTokenType(Token.TokenType.EOF);
+            token.setTokenType(MyToken.TokenType.EOF);
             return token;
         }
 
@@ -150,149 +105,102 @@ public class MyLexer {
                 }
             }
 
-            token.setTokenType(Token.TokenType.IDENTIFIER);
+            token.setTokenType(MyToken.TokenType.IDENTIFIER);
             // System.out.println(token);
             return token;
         }
 
         if (Character.isDigit((char) c)) {
-            token.setNewLexeme();
+            // token.setNewLexeme();
             while ((c != -1) && Character.isDigit((char) c)) {
                 token.setLexeme(String.valueOf((char) c));
                 c = pushbackReader.read();
                 // pushbackReader.unread(c);
             }
-            token.setTokenType(Token.TokenType.CONSTANT);
+            token.setTokenType(MyToken.TokenType.CONSTANT);
             // System.out.println(token);
             return token;
         }
 
-        token.setNewLexeme();
+        // token.setNewLexeme();
         token.setLexeme(String.valueOf((char) c));
-        token.setTokenType(Token.TokenType.SYMBOL);
+        token.setTokenType(MyToken.TokenType.SYMBOL);
         // System.out.println(token);
         return token;
 
     }
 
-    public MyToken PeekNextToken() throws IOException {
-        MyToken token = new MyToken();
+    public MyToken PeekNextToken() {
+    }
 
-        // Loop to consume any leading whitespaces
-        while (Character.isWhitespace((char) c) && (c != -1)) {
-            if (c == '\r')
-                linNum++;
-            c = pushbackReader.read();
-            // pushbackReader.unread(c);
+    public static List<String> removeComments(File inputFile) throws IOException {
+        FileReader fread = new FileReader(inputFile);
+
+        String content = null;
+        StringBuilder stringBuild = new StringBuilder();
+        String separateLine = System.getProperty("line.separator"); // Java API
+        LineNumberReader lineRead = new LineNumberReader(fread);
+        content = lineRead.readLine()
+        while (content != (null)) {
+            int inLineCom = content.indexOf("//");
+            if (inLineCom != -1)
+                content = content.substring(0, inLineCom); // Delete the inline coment from the starting double-slash
+
+            stringBuild.append(content);
+            stringBuild.append(separateLine);
+            content = lineRead.readLine();
         }
+        String rmvMultilineCom = stringBuild.toString();
+        String noComments = rmvMultilineCom.replaceAll("/\\*(?:.|[\\n\\r])*?\\*/", " ");
 
-        // Loop to consume any leading comments
-        Integer comType = 0;
-        do {
-            if ((char) c == '/' && (c != -1)) {
-                c = pushbackReader.read();
-                pushbackReader.unread(c);
-                if ((char) c == '/') { // Check for "//" Single line comment
-                    comType = 1;
-                    if (c == '\r') {
-                        linNum++;
-                        c = pushbackReader.read();
-                        // pushbackReader.unread(c);
-                        comType = 0;
+        List<String> conversionStrList = new ArrayList<String>(Arrays.asList(noComments.split("\n")));
+
+        lineRead.close();
+        fread.close();
+        
+        
+        return conversionStrList;
+    }
+
+    public void Tokenize(List<String> inputString) {
+
+
+        //split into array of individual chars
+        
+        for (int count = 0; count < inputString.size(); count++) {          //iterate through lines
+                String[] particles = inputString.get(count).split("(?!^)");
+                for (int i = 0; i < particles.length; i++) {
+                    
+                    
+                    if(Character.isDigit(particles[i].charAt(0)){
+                        MyToken newToken = new MyToken(parseInt(particles[i]), MyToken.TokenType.CONSTANT, count);
+                        allTokens.add(newToken);
                     }
-
-                } else if ((char) c == '*') { // Check for "/*" Multi-line comment start
-                    comType = 2;
-                    c = pushbackReader.read();
-                    // pushbackReader.unread(c);
-                    if ((char) c == '*') { // Check for "/**" API Documentation comment
-                        c = pushbackReader.read();
-                        // pushbackReader.unread(c);
-                        if ((char) c == '/') {
-                            linNum++;
-                            c = pushbackReader.read();
-                            // pushbackReader.unread(c);
-                            comType = 0;
-                        } else {
-                            c = pushbackReader.read();
-                            // pushbackReader.unread(c);
+                    for (Keywords kwd : Keywords.values()) {
+                        if (particles[i].equals(kwd.getKeywordName())) {
+                            MyToken newToken = new MyToken(particles[i], MyToken.TokenType.KEYWORD, count);
+                            allTokens.add(newToken);
                         }
-                    } else if ((char) c == '/') {
-                        linNum++;
-                        c = pushbackReader.read();
-                        // pushbackReader.unread(c);
-                        comType = 0;
-                    } else {
-                        c = pushbackReader.read();
-                        // pushbackReader.unread(c);
+                        
                     }
                 }
-            }
-        } while ((comType != 0) || (comType == 1 && (char) c != '\r'));
-
-        // EOF detection
-        if (c == -1) {
-            token.setTokenType(Token.TokenType.EOF);
-            token.setLineNumber(linNum);
-            // System.out.println(token);
-            return token;
         }
-
-        // Check for keywords or identifiers
-        if (Character.isLetter((char) c)) {
-            token.setNewLexeme();
-            while ((c != -1) && Character.isLetterOrDigit((char) c) || c == '_') {
-                token.setLexeme(String.valueOf((char) c));
-                c = pushbackReader.read();
-                pushbackReader.unread(c);
-            }
-
-            token.setLineNumber(linNum);
-            for (int i = 0; i < 21; i++) {
-                if (token.getLexeme().equals(keywords.get(i))) {
-                    token.setTokenType(MyToken.TokenType.KEYWORD);
-                    System.out.println("token");
-                    return token;
-                }
-            }
-            token.setTokenType(Token.TokenType.IDENTIFIER);
-            // System.out.println(token);
-            return token;
-        }
-
-        if (Character.isDigit((char) c)) {
-            token.setNewLexeme();
-            while ((c != -1) && Character.isDigit((char) c)) {
-                token.setLexeme(String.valueOf((char) c));
-                c = pushbackReader.read();
-                pushbackReader.unread(c);
-            }
-            token.setTokenType(Token.TokenType.CONSTANT);
-            // System.out.println(token);
-            return token;
-        }
-
-        token.setNewLexeme();
-        token.setLexeme(String.valueOf((char) c));
-        token.setTokenType(Token.TokenType.SYMBOL);
-        // System.out.println(token);
-        return token;
-
     }
 
     public static void main(String[] args) {
-        Lexer trialLexer = new Lexer(args[0]);
+        MyLexer trialLexer = new MyLexer(args[0]);
         Integer count = 0;
-        try {
-            while (!trialLexer.PeekNextToken().equals(Token.TokenType.EOF)) {
-                Token dispToken = trialLexer.GetNextToken();
-                count++;
-                System.out.println(dispToken);
-            }
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        // try {
+        // while (!trialLexer.PeekNextToken().equals(MyToken.TokenType.EOF)) {
+        // MyToken dispToken = trialLexer.GetNextToken();
+        // count++;
+        // System.out.println(dispToken);
+        // }
+
+        // } catch (IOException e) {
+        // // TODO Auto-generated catch block
+        // e.printStackTrace();
+        // }
 
     }
 }

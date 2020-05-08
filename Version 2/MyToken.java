@@ -6,11 +6,23 @@ public class MyToken {
 
     }
 
+    public MyToken(){
+        lexeme = "";
+    }
+
+    public MyToken(String inputLexeme, TokenType inputType, int inputLine){
+        setLexeme(inputLexeme);
+        setTokenType(inputType);
+        setLineNumber(inputLine);
+    }
+
     public TokenType type;
+    private int lineNumber;
 
 
     public void setLexeme(String lexemeRead) {
         lexeme += lexemeRead;
+        System.out.println(lexemeRead);
     }
 
     public void setTokenType(TokenType tokenRead) {
@@ -23,5 +35,14 @@ public class MyToken {
 
     public TokenType getTokenType() {
         return type;
+    }
+
+    public void setLineNumber(int inputLineNumber){
+        lineNumber = inputLineNumber;
+    }
+
+    @Override
+    public String toString(){
+        return String.format("< " + getLexeme() + " , " + getTokenType() + " >\n");
     }
 }
