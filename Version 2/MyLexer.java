@@ -1,13 +1,12 @@
 import java.io.*;
 import java.util.*;
 
+
 public class MyLexer {
-    public PushbackReader pushbackReader = null;
 
     private int linNum;
-    int c;
+  
 
-    public ArrayList<MyToken> allTokens;
     public List<String> charCode;
 
     public enum Keywords {
@@ -57,7 +56,7 @@ public class MyLexer {
         }
 
         try {
-            removeComments(inputFile)
+            removeComments(inputFilename);
             return true;
         } catch (Exception FileError) {
             System.out.println("Unable to open the specified file " + inputFilename);
@@ -81,59 +80,7 @@ public class MyLexer {
         return linNum;
     }
 
-    public MyToken GetNextToken() throws IOException {
-
-        // EOF detection
-        if (c == -1) {
-            token.setTokenType(MyToken.TokenType.EOF);
-            return token;
-        }
-
-        // Check for keywords or identifiers
-        if (Character.isLetter((char) c)) {
-            while ((c != -1) && Character.isLetterOrDigit((char) c) || c == '_') {
-                token.setLexeme(String.valueOf((char) c));
-                c = pushbackReader.read();
-                // pushbackReader.unread(c);
-            }
-
-            for (Keywords kwd : Keywords.values()) {
-                if (token.getLexeme().equals(kwd.getKeywordName())) {
-                    token.setTokenType(MyToken.TokenType.KEYWORD);
-                    // System.out.println(token);
-                    return token;
-                }
-            }
-
-            token.setTokenType(MyToken.TokenType.IDENTIFIER);
-            // System.out.println(token);
-            return token;
-        }
-
-        if (Character.isDigit((char) c)) {
-            // token.setNewLexeme();
-            while ((c != -1) && Character.isDigit((char) c)) {
-                token.setLexeme(String.valueOf((char) c));
-                c = pushbackReader.read();
-                // pushbackReader.unread(c);
-            }
-            token.setTokenType(MyToken.TokenType.CONSTANT);
-            // System.out.println(token);
-            return token;
-        }
-
-        // token.setNewLexeme();
-        token.setLexeme(String.valueOf((char) c));
-        token.setTokenType(MyToken.TokenType.SYMBOL);
-        // System.out.println(token);
-        return token;
-
-    }
-
-    public MyToken PeekNextToken() {
-    }
-
-    public List<String> removeComments(File inputFile) throws IOException {
+    public List<String> removeComments(String inputFile) throws IOException {
         FileReader fread = new FileReader(inputFile);
 
         String content = null;
@@ -175,44 +122,100 @@ public class MyLexer {
         return charCode.get(0).charAt(0);
     }
 
-    public void Tokenize(List<String> inputString) {
-
-        // split into array of individual chars
-
-        // for (int i = 0; i < particles.length; i++) {
-
-        // if(Character.isDigit(particles[i].charAt(0)){
-        // MyToken newToken = new MyToken(parseInt(particles[i]),
-        // MyToken.TokenType.CONSTANT, count);
-        // allTokens.add(newToken);
-        // }
-        // for (Keywords kwd : Keywords.values()) {
-        // if (particles[i].equals(kwd.getKeywordName())) {
-        // MyToken newToken = new MyToken(particles[i], MyToken.TokenType.KEYWORD,
-        // count);
-        // allTokens.add(newToken);
-        // }
-
-        // }
-        // }
+    public MyToken consumeToken() {
+        while (Character.isWhitespace(peekChar())) {
+            consumeChar();
+        }
+        char c = peekChar();
+        MyToken.TokenType typeC = classifyToken(c);
+        switch (typeC) {
+            case INT_LITERAL:
+                consumeIntegerToken();
+                break;
+            case IDENTIFIER:
+                consumeWordToken();
+                break;
+            case STRING_LITERAL:
+                consumeStringToken();
+                break;
+            case SYMBOL:
+                consumeSymbolToken();
+                break;
+        }
+        return new MyToken(String.valueOf(c),typeC);
     }
 
+    public List<MyToken> allTokens(){
+        List<MyToken> tokens = new ArrayList<MyToken>();
+
+        while(!charCode.isEmpty()){
+            tokens.add(consumeToken());
+        }
+        MyToken endOf = new MyToken("-1",MyToken.TokenType.EOF);
+        tokens.add(endOf);
+
+        return tokens;
+
+    }
+
+    public MyToken.TokenType classifyToken(char input) {
+        if (Character.isDigit(input))
+            return MyToken.TokenType.INT_LITERAL;
+        if (Character.isLetter(input))
+            return MyToken.TokenType.IDENTIFIER;
+        if (input == '\"')
+            return MyToken.TokenType.STRING_LITERAL;
+        else
+            return MyToken.TokenType.SYMBOL;
+    }
+
+    public MyToken consumeIntegerToken() {
+        StringBuilder stringBuild = new StringBuilder();
+
+        while (Character.isDigit(peekChar())) {
+            stringBuild.append(consumeChar());
+        }
+        return new MyToken(stringBuild.toString(), MyToken.TokenType.INT_LITERAL);
+
+    }
+
+    public MyToken consumeStringToken() {
+        StringBuilder stringBuild = new StringBuilder();
+
+        while (peekChar() != '\"') {
+            stringBuild.append(consumeChar());
+        }
+        consumeChar(); // to consume the ending '"'
+
+        
+        return new MyToken(stringBuild.toString(), MyToken.TokenType.STRING_LITERAL);
+
+    }
+
+    public MyToken consumeWordToken() {
+        StringBuilder stringBuild = new StringBuilder();
+
+        while (Character.isLetterOrDigit(peekChar())) {
+            stringBuild.append(consumeChar());
+        }
+
+        for (Keywords kwd : Keywords.values()) {
+            if (stringBuild.toString().equals(kwd.getKeywordName())) {
+                return new MyToken(stringBuild.toString(), MyToken.TokenType.KEYWORD);
+                
+            }
+        }
+        return new MyToken(stringBuild.toString(), MyToken.TokenType.IDENTIFIER);
+    }
+
+    public MyToken consumeSymbolToken() {
+        String symbolLexeme = String.valueOf(consumeChar());
+
+        return new MyToken(symbolLexeme, MyToken.TokenType.SYMBOL);
     }
 
     public static void main(String[] args) {
         MyLexer trialLexer = new MyLexer(args[0]);
-        Integer count = 0;
-        // try {
-        // while (!trialLexer.PeekNextToken().equals(MyToken.TokenType.EOF)) {
-        // MyToken dispToken = trialLexer.GetNextToken();
-        // count++;
-        // System.out.println(dispToken);
-        // }
-
-        // } catch (IOException e) {
-        // // TODO Auto-generated catch block
-        // e.printStackTrace();
-        // }
-
+        
     }
 }

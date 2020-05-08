@@ -5,6 +5,7 @@ public class test {
 
     public static List<String> removeCommentsTest(String inputFile) throws IOException {
         FileReader fread = new FileReader(inputFile);
+        List<String> charCode;
 
         String content = null;
         StringBuilder stringBuild = new StringBuilder();
@@ -25,7 +26,10 @@ public class test {
         String noComments = rmvMultilineCom.replaceAll("/\\*(?:.|[\\n\\r])*?\\*/", " ");
 
         List<String> conversionStrList = new ArrayList<String>(Arrays.asList(noComments.split("\n")));
-
+        for (int count = 0; count < conversionStrList.size(); count++) {          //iterate through lines
+            charCode = (Arrays.asList(conversionStrList.get(count).split("(?!^)")));
+            System.out.println(charCode);
+        }
         lineRead.close();
         fread.close();
 

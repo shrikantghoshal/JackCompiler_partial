@@ -2,7 +2,7 @@ public class MyToken {
     public String lexeme;
 
     public enum TokenType {
-        SYMBOL, KEYWORD, IDENTIFIER, LITERAL, CONSTANT, EOF;
+        SYMBOL, KEYWORD, IDENTIFIER, INT_LITERAL, STRING_LITERAL, EOF;
 
     }
 
@@ -16,6 +16,10 @@ public class MyToken {
         setLineNumber(inputLine);
     }
 
+    public MyToken(String inputLexeme, TokenType inputType){
+        setLexeme(inputLexeme);
+        setTokenType(inputType);
+    }
     public TokenType type;
     private int lineNumber;
 
@@ -43,6 +47,6 @@ public class MyToken {
 
     @Override
     public String toString(){
-        return String.format("< " + getLexeme() + " , " + getTokenType() + " >\n");
+        return String.format("< %s , %s >\n", getLexeme(), getTokenType());
     }
 }
