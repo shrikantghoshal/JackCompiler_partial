@@ -8,7 +8,7 @@ public class MyLexer {
     int c;
 
     public ArrayList<MyToken> allTokens;
-    public List<String> uncommentedCode;
+    public List<String> charCode;
 
     public enum Keywords {
         // Program components
@@ -133,14 +133,14 @@ public class MyLexer {
     public MyToken PeekNextToken() {
     }
 
-    public static List<String> removeComments(File inputFile) throws IOException {
+    public List<String> removeComments(File inputFile) throws IOException {
         FileReader fread = new FileReader(inputFile);
 
         String content = null;
         StringBuilder stringBuild = new StringBuilder();
         String separateLine = System.getProperty("line.separator"); // Java API
         LineNumberReader lineRead = new LineNumberReader(fread);
-        content = lineRead.readLine()
+        content = lineRead.readLine();
         while (content != (null)) {
             int inLineCom = content.indexOf("//");
             if (inLineCom != -1)
@@ -155,36 +155,48 @@ public class MyLexer {
 
         List<String> conversionStrList = new ArrayList<String>(Arrays.asList(noComments.split("\n")));
 
+        for (int count = 0; count < conversionStrList.size(); count++) { // iterate through lines
+            charCode = (Arrays.asList(conversionStrList.get(count).split("(?!^)")));
+        }
+
         lineRead.close();
         fread.close();
-        
-        
+
         return conversionStrList;
+    }
+
+    public char peekChar() {
+        char temp = charCode.get(0).charAt(0);
+        charCode.remove(0);
+        return temp;
+    }
+
+    public char consumeChar() {
+        return charCode.get(0).charAt(0);
     }
 
     public void Tokenize(List<String> inputString) {
 
+        // split into array of individual chars
 
-        //split into array of individual chars
-        
-        for (int count = 0; count < inputString.size(); count++) {          //iterate through lines
-                String[] particles = inputString.get(count).split("(?!^)");
-                for (int i = 0; i < particles.length; i++) {
-                    
-                    
-                    if(Character.isDigit(particles[i].charAt(0)){
-                        MyToken newToken = new MyToken(parseInt(particles[i]), MyToken.TokenType.CONSTANT, count);
-                        allTokens.add(newToken);
-                    }
-                    for (Keywords kwd : Keywords.values()) {
-                        if (particles[i].equals(kwd.getKeywordName())) {
-                            MyToken newToken = new MyToken(particles[i], MyToken.TokenType.KEYWORD, count);
-                            allTokens.add(newToken);
-                        }
-                        
-                    }
-                }
-        }
+        // for (int i = 0; i < particles.length; i++) {
+
+        // if(Character.isDigit(particles[i].charAt(0)){
+        // MyToken newToken = new MyToken(parseInt(particles[i]),
+        // MyToken.TokenType.CONSTANT, count);
+        // allTokens.add(newToken);
+        // }
+        // for (Keywords kwd : Keywords.values()) {
+        // if (particles[i].equals(kwd.getKeywordName())) {
+        // MyToken newToken = new MyToken(particles[i], MyToken.TokenType.KEYWORD,
+        // count);
+        // allTokens.add(newToken);
+        // }
+
+        // }
+        // }
+    }
+
     }
 
     public static void main(String[] args) {
