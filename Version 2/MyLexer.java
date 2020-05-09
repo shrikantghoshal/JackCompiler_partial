@@ -1,13 +1,12 @@
 import java.io.*;
 import java.util.*;
 
-
 public class MyLexer {
 
     private int linNum;
-  
 
-    public List<String> charCode;
+    public List<String> charCode = new ArrayList();
+    public List<MyToken> tokenList;
 
     public enum Keywords {
         // Program components
@@ -58,7 +57,7 @@ public class MyLexer {
         try {
             removeComments(inputFilename);
             return true;
-        } catch (Exception FileError) {
+        } catch (IOException FileError) {
             System.out.println("Unable to open the specified file " + inputFilename);
             System.exit(0);
         }
@@ -80,7 +79,7 @@ public class MyLexer {
         return linNum;
     }
 
-    public List<String> removeComments(String inputFile) throws IOException {
+    public void removeComments(String inputFile) throws IOException {
         FileReader fread = new FileReader(inputFile);
 
         String content = null;
@@ -100,76 +99,85 @@ public class MyLexer {
         String rmvMultilineCom = stringBuild.toString();
         String noComments = rmvMultilineCom.replaceAll("/\\*(?:.|[\\n\\r])*?\\*/", " ");
 
-        List<String> conversionStrList = new ArrayList<String>(Arrays.asList(noComments.split("\n")));
+        // List<String> conversionStrList = new
+        // ArrayList<String>(Arrays.asList(noComments.split("\n")));
+        charCode.addAll(Arrays.asList(noComments.split("(?!^)")));
 
-        for (int count = 0; count < conversionStrList.size(); count++) { // iterate through lines
-            charCode = (Arrays.asList(conversionStrList.get(count).split("(?!^)")));
-        }
+        // for (int count = 0; count < conversionStrList.size(); count++) { // iterate
+        // through lines
+        // charCode.addAll(conversionStrList.get(count).split("(?!^)"));
+        // }
+
+        allTokens();
 
         lineRead.close();
         fread.close();
 
-        return conversionStrList;
     }
 
-    public char peekChar() {
+    public char consumeChar() throws EndOfFileException {
+        if (charCode.isEmpty())
+            throw new EndOfFileException("List is empty");
         char temp = charCode.get(0).charAt(0);
         charCode.remove(0);
         return temp;
     }
 
-    public char consumeChar() {
+    public char peekChar() throws EndOfFileException {
+        if (charCode.isEmpty())
+            throw new EndOfFileException("List is empty");
         return charCode.get(0).charAt(0);
     }
 
-    public MyToken consumeToken() {
+    public MyToken consumeToken() throws EndOfFileException {
         while (Character.isWhitespace(peekChar())) {
             consumeChar();
         }
         char c = peekChar();
-        MyToken.TokenType typeC = classifyToken(c);
-        switch (typeC) {
+
+        switch (classifyToken(c)) {
             case INT_LITERAL:
-                consumeIntegerToken();
-                break;
+                return consumeIntegerToken();
             case IDENTIFIER:
-                consumeWordToken();
-                break;
+                return consumeWordToken();
             case STRING_LITERAL:
-                consumeStringToken();
-                break;
+                return consumeStringToken();
             case SYMBOL:
-                consumeSymbolToken();
-                break;
+                return consumeSymbolToken();
         }
-        return new MyToken(String.valueOf(c),typeC);
+        throw new RuntimeException("Unexpected state");
     }
 
-    public List<MyToken> allTokens(){
+    public List<MyToken> allTokens() {
         List<MyToken> tokens = new ArrayList<MyToken>();
 
-        while(!charCode.isEmpty()){
-            tokens.add(consumeToken());
-        }
-        MyToken endOf = new MyToken("-1",MyToken.TokenType.EOF);
-        tokens.add(endOf);
+        try {
+            while (!charCode.isEmpty()) {
+                tokens.add(consumeToken());
+            }
 
+        } catch (EndOfFileException e) {
+            MyToken endOf = new MyToken("-1", MyToken.TokenType.EOF);
+            tokens.add(endOf);
+        }
+
+        tokenList = tokens;
         return tokens;
 
     }
 
-    public MyToken.TokenType classifyToken(char input) {
+    public MyToken.TokenType classifyToken(char input) throws EndOfFileException {
         if (Character.isDigit(input))
             return MyToken.TokenType.INT_LITERAL;
         if (Character.isLetter(input))
             return MyToken.TokenType.IDENTIFIER;
-        if (input == '\"')
+        if (input == '\"') {
             return MyToken.TokenType.STRING_LITERAL;
-        else
+        } else
             return MyToken.TokenType.SYMBOL;
     }
 
-    public MyToken consumeIntegerToken() {
+    public MyToken consumeIntegerToken() throws EndOfFileException {
         StringBuilder stringBuild = new StringBuilder();
 
         while (Character.isDigit(peekChar())) {
@@ -179,20 +187,21 @@ public class MyLexer {
 
     }
 
-    public MyToken consumeStringToken() {
+    public MyToken consumeStringToken() throws EndOfFileException {
         StringBuilder stringBuild = new StringBuilder();
 
         while (peekChar() != '\"') {
+
             stringBuild.append(consumeChar());
         }
-        consumeChar(); // to consume the ending '"'
 
-        
+        stringBuild.append(consumeChar());// to consume the ending '"'
+
         return new MyToken(stringBuild.toString(), MyToken.TokenType.STRING_LITERAL);
 
     }
 
-    public MyToken consumeWordToken() {
+    public MyToken consumeWordToken() throws EndOfFileException {
         StringBuilder stringBuild = new StringBuilder();
 
         while (Character.isLetterOrDigit(peekChar())) {
@@ -202,20 +211,35 @@ public class MyLexer {
         for (Keywords kwd : Keywords.values()) {
             if (stringBuild.toString().equals(kwd.getKeywordName())) {
                 return new MyToken(stringBuild.toString(), MyToken.TokenType.KEYWORD);
-                
+
             }
         }
         return new MyToken(stringBuild.toString(), MyToken.TokenType.IDENTIFIER);
     }
 
-    public MyToken consumeSymbolToken() {
+    public MyToken consumeSymbolToken() throws EndOfFileException {
         String symbolLexeme = String.valueOf(consumeChar());
 
         return new MyToken(symbolLexeme, MyToken.TokenType.SYMBOL);
     }
 
+    public MyToken GetNextToken() {
+        MyToken temp = tokenList.get(0);
+        tokenList.remove(0);
+        return temp;
+    }
+
+    public MyToken PeekNextToken() {
+        return tokenList.get(0);
+    }
+
     public static void main(String[] args) {
         MyLexer trialLexer = new MyLexer(args[0]);
-        
+
+        while (trialLexer.PeekNextToken().getTokenType() != MyToken.TokenType.EOF) {
+            // System.out.println(trialLexer.getNextToken().toString());
+            trialLexer.GetNextToken().toString();
+        }
+
     }
 }

@@ -45,8 +45,13 @@ public class MyToken {
         lineNumber = inputLineNumber;
     }
 
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
     @Override
     public String toString(){
         return String.format("< %s , %s >\n", getLexeme(), getTokenType());
+        
     }
 }

@@ -1,43 +1,42 @@
 
 public class MyParser {
 
-    Lexer lexerUsing;
+    private MyLexer lexer;
 
     public MyParser() {
 
     }
 
     public void init(String inputFileName) {
-        lexerUsing = new MyLexer(inputFileName);
-        if (!lexerUsing.init(inputFileName)) {
+        lexer = new MyLexer(inputFileName);
+        if (!lexer.init(inputFileName)) {
             System.out.println("Unable to initialise the parser");
-
         }
         System.out.println("Parser initialised");
     }
 
-    public void Error(Token t, String message) {
+    public void Error(MyToken t, String message) {
 
         System.out.println("Error in line " + t.getLineNumber() + " at or near " + t.getLexeme() + ", " + message);
 
         System.exit(1);
     }
 
-    public void OK(Token t) {
+    public void OK(MyToken t) {
         System.out.println(t.getLexeme() + ":  OK ");
     }
 
     public void banProg() {
 
-        Token t = lexerUsing.PeekNextToken();
-        while (t.getTokenType() != Token.TokenType.EOF) {
+        MyToken t = lexer.PeekNextToken();
+        while (t.getTokenType() != MyToken.TokenType.EOF) {
             stmt();
-            t = lexerUsing.PeekNextToken();
+            t = lexer.PeekNextToken();
         }
     }
 
     public void stmt() {
-        Token t = lexerUsing.PeekNextToken();
+        Token t = lexer.PeekNextToken();
 
         if (t.getLexeme() == "given")
             varDeclar();
@@ -54,11 +53,11 @@ public class MyParser {
     }
 
     void varDeclar() {
-        Token t = lexerUsing.GetNextToken();
+        Token t = lexer.GetNextToken();
         if (t.getLexeme() == "given")
             OK(t); // be happy
         else
-            t = lexerUsing.GetNextToken();
+            t = lexer.GetNextToken();
         if (t.getTokenType() == Token.TokenType.IDENTIFIER)
             OK(t); // be happy
         else
@@ -66,18 +65,18 @@ public class MyParser {
     }
 
     void assignStmt() {
-        Token t = lexerUsing.GetNextToken();
+        Token t = lexer.GetNextToken();
         if (t.getLexeme() == "assign")
             OK(t); // be happy
         else
             Error(t, "'assign' expected");
         expr();
-        t = lexerUsing.GetNextToken();
+        t = lexer.GetNextToken();
         if (t.getLexeme() == "to")
             OK(t); // be happy
         else
             Error(t, "'to' expected");
-        t = lexerUsing.GetNextToken();
+        t = lexer.GetNextToken();
         if (t.getTokenType() == Token.TokenType.IDENTIFIER)
             OK(t); // be happy
         else
@@ -87,7 +86,7 @@ public class MyParser {
 
 
     void printStmt() {
-        Token t = lexerUsing.GetNextToken();
+        Token t = lexer.GetNextToken();
         if (t.getLexeme() == "print")
             OK(t); // be happy
 
@@ -97,26 +96,26 @@ public class MyParser {
     }
 
     void repeatStmt() {
-        Token t = lexerUsing.GetNextToken();
+        Token t = lexer.GetNextToken();
         if (t.Lexeme == "repeat")
             OK(t); // be happy
         else
             Error(t, "'repeat' expected");
         expr();
-        t = lexerUsing.GetNextToken();
+        t = lexer.GetNextToken();
         if (t.Lexeme == "times")
             OK(t); // be happy
         else
-            t = lexerUsing.PeekNextToken();
+            t = lexer.PeekNextToken();
         while (t.Lexeme != ";") {
             stmt();
-            t = lexerUsing.PeekNextToken();
+            t = lexer.PeekNextToken();
         }
-        lexerUsing.GetNextToken(); // consume the ;
+        lexer.GetNextToken(); // consume the ;
     }
 
     void banStmt() {
-        Token t = lexerUsing.GetNextToken();
+        Token t = lexer.GetNextToken();
         if (t.Lexeme == "banana")
             OK(t); // be happy
         else
@@ -126,12 +125,12 @@ public class MyParser {
     // expr --> term { (+|-) term }
     void expr() {
         term();
-        Token t = lexerUsing.PeekNextToken();
+        Token t = lexer.PeekNextToken();
         while (t.Lexeme == "+" || t.Lexeme == "-") {
-            lexerUsing.GetNextToken(); // consume the + or -
+            lexer.GetNextToken(); // consume the + or -
             Error(t, "'times' expected");
             term();
-            t = lexerUsing.PeekNextToken();
+            t = lexer.PeekNextToken();
         }
     }
 
@@ -139,17 +138,17 @@ public class MyParser {
     void term() {
         factor();
 
-        Token t = lexerUsing.PeekNextToken();
+        Token t = lexer.PeekNextToken();
         while (t.Lexeme == "*" || t.Lexeme == "/") {
-            lexerUsing.GetNextToken(); // consume the * or /
+            lexer.GetNextToken(); // consume the * or /
             factor();
-            t = lexerUsing.PeekNextToken();
+            t = lexer.PeekNextToken();
         }
     }
 
     // factor -> int | id | ( expr )
     void factor() {
-        Token t = lexerUsing.GetNextToken();
+        Token t = lexer.GetNextToken();
         if (t.Type == Token.TokenTypes.Identifier)
             OK(t); // be happy
     }
