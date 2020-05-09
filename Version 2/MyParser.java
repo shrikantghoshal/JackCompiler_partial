@@ -1,3 +1,4 @@
+import MyToken.TokenType;
 
 public class MyParser {
 
@@ -17,7 +18,7 @@ public class MyParser {
 
     public void Error(MyToken t, String message) {
 
-        System.out.println("Error in line " + t.getLineNumber() + " at or near " + t.getLexeme() + ", " + message);
+        System.out.println("Error at or near " + t.getLexeme() + ", " + message);
 
         System.exit(1);
     }
@@ -26,7 +27,7 @@ public class MyParser {
         System.out.println(t.getLexeme() + ":  OK ");
     }
 
-    public void banProg() {
+    public void jackProg() {
 
         MyToken t = lexer.PeekNextToken();
         while (t.getTokenType() != MyToken.TokenType.EOF) {
@@ -35,60 +36,247 @@ public class MyParser {
         }
     }
 
-    public void stmt() {
-        Token t = lexer.PeekNextToken();
+    // public void class(){
+    // MyToken t = lexer.PeekNextToken();
+    // if (t.getLexeme() = "class"){
+    // OK();
+    // t=lexer.
+    // }
+    // }
 
-        if (t.getLexeme() == "given")
-            varDeclar();
-        else if (t.getLexeme() == "print")
-            printStmt();
-        else if (t.getLexeme() == "assign")
-            assignStmt();
-        else if (t.getLexeme() == "repeat")
-            repeatStmt();
-        else if (t.getLexeme() == "banana")
-            banStmt();
+    public
+
+    public void statement() {
+        MyToken t = lexer.PeekNextToken();
+
+        if (t.getLexeme() == "var")
+            varDeclarStatement();
+        else if (t.getLexeme() == "let")
+            letStatement();
+        else if (t.getLexeme() == "if")
+            ifStatement();
+        else if (t.getLexeme() == "while")
+            repeatStatement();
+        else if (t.getLexeme() == "do")
+            doStatement();
+        else if (t.getLexeme() == "return")
+            returnStatement();
         else
             Error(t, "unknown keyword");
     }
 
-    void varDeclar() {
-        Token t = lexer.GetNextToken();
-        if (t.getLexeme() == "given")
-            OK(t); // be happy
+    // public void stmt() {
+    // MyToken t = lexer.PeekNextToken();
+
+    // if (t.getLexeme() == "var")
+    // varDeclar();
+    // else if (t.getLexeme() == "let")
+    // letStmt();
+    // else if (t.getLexeme() == "do")
+    // printStmt();
+    // // doStmt();
+    // else if (t.getLexeme() == "if")
+    // assignStmt();
+    // // ifStmt();
+    // else if (t.getLexeme() == "while")
+    // repeatStmt();
+    // // elseStmt();
+    // else if (t.getLexeme() == "")
+    // banStmt();
+    // // whileStmt();
+    // else if (t.getLexeme() == "return")
+    // returnStmt();
+    // else
+    // Error(t, "unknown keyword");
+    // }
+
+    public void varDeclarStatement() {
+        MyToken t = lexer.GetNextToken();
+        if (t.getLexeme() == "var")
+            OK(t);
         else
             t = lexer.GetNextToken();
-        if (t.getTokenType() == Token.TokenType.IDENTIFIER)
-            OK(t); // be happy
-        else
+        if (t.getTokenType() == MyToken.TokenType.IDENTIFIER) {
+            OK(t);
+            t = lexer.GetNextToken();
+            if (t.getTokenType() == MyToken.TokenType.IDENTIFIER)
+                OK(t);
+            else
+                Error(t, "an identifier is expected");
+        } else
             Error(t, "an identifier is expected");
     }
 
-    void assignStmt() {
-        Token t = lexer.GetNextToken();
+    public void letStatement() {
+        MyToken t = lexer.GetNextToken();
+        if (t.getLexeme() == "let") {
+            OK(t);
+            t = lexer.GetNextToken();
+            if (t.getTokenType() == MyToken.TokenType.IDENTIFIER) {
+                OK(t);
+                t = lexer.GetNextToken();
+                if (t.getLexeme() == "[") {
+                    OK(t);
+                    t = lexer.GetNextToken();
+                    expression();// TODO
+                    t = lexer.GetNextToken();
+                    if (t.getLexeme() == "]") {
+                        OK(t);
+                        t = lexer.GetNextToken();
+                        if (t.getLexeme() == "=") {
+                            OK(t);
+                            t = lexer.GetNextToken();
+                            expression();
+                            t = lexer.GetNextToken();
+                            if (t.getLexeme() == ";")
+                                OK(t);
+                            else
+                                Error(t, "a ';' is expected");
+                        } else
+                            Error(t, "a '=' is expected");
+                    } else
+                        Error(t, "a ']' is expected");
+                } else if (t.getLexeme() == "=") {
+                    OK(t);
+                    t = lexer.GetNextToken();
+                    expression();
+                    t = lexer.GetNextToken();
+                    if (t.getLexeme() == ";")
+                        OK(t);
+                    else
+                        Error(t, "a ';' is expected");
+                } else
+                    Error(t, "a '=' of '[' is expected");
+            } else
+                Error(t, "an identifier is expected");
+        } else
+
+            Error(t, "an identifier is expected: 'let");
+    }
+
+    public void ifStatement() {
+        MyToken t = lexer.GetNextToken();
+        if (t.getLexeme() == "if") {
+            OK(t);
+            t = lexer.GetNextToken();
+            if (t.getLexeme() == "(") {
+                OK(t);
+                t = lexer.GetNextToken();
+                expression();
+                t = lexer.GetNextToken();
+                if (t.getLexeme() == ")") {
+                    OK(t);
+                    t = lexer.GetNextToken();
+                    if (t.getLexeme() == "{") {
+                        OK(t);
+                        t = lexer.GetNextToken();
+                        statement();
+                        t = lexer.GetNextToken();
+                        if (t.getLexeme() == "}") {
+                            OK(t);
+                            MyToken lookAhead = lexer.PeekNextToken();
+                            if (lookAhead.getLexeme() == "else") {
+                                t = lexer.GetNextToken();
+                                OK(t);
+                                t = lexer.GetNextToken();
+                                if (t.getLexeme() == "{") {
+                                    OK(t);
+                                    t = lexer.GetNextToken();
+                                    statement();
+                                    t = lexer.GetNextToken();
+                                    if (t.getLexeme() == "}") {
+                                        OK(t);
+                                    } else
+                                        Error(t, "a '}' is expected");
+                                } else
+                                    Error(t, "a '{' is expected");
+                            } else
+                                Error(t, "an 'else' is expected");
+                        } else
+                            Error(t, "a '}' is expected");
+                    } else
+                        Error(t, "a '{' is expected");
+                } else
+                    Error(t, "a ')' is expected");
+            } else
+                Error(t, "a '(' is expected");
+        } else
+            Error(t, "an identifier is expected: 'if");
+    }
+
+    public void whileStatement() {
+        MyToken t = lexer.GetNextToken();
+        if (t.getLexeme() == "while") {
+            if (t.getLexeme() == "(") {
+                OK(t);
+                t = lexer.GetNextToken();
+                expression();
+                t = lexer.GetNextToken();
+                if (t.getLexeme() == ")") {
+                    OK(t);
+                    t = lexer.GetNextToken();
+                    if (t.getLexeme() == "{") {
+                        OK(t);
+                        t = lexer.GetNextToken();
+                        statement();
+                        t=lexer.GetNextToken();
+                        if (t.getLexeme() == "}") {
+                            OK(t);
+                        } else
+                            Error(t, "a '}' is expected");
+                    } else
+                        Error(t, "a '{' is expected");
+                } else
+                    Error(t, "a ')' is expected");
+            } else
+                Error(t, "a '(' is expected");
+        } else
+            Error(t, "an identifier is expected: 'while'");
+    }
+
+    public void deStatement(){
+        MyToken t = lexer.GetNextToken();
+        if (t.getLexeme() == "do") {
+            OK(t);
+            t = lexer.GetNextToken();
+            subRoutineCall();
+        } else
+            Error(t, "an identifier is expected: 'do'");
+    }
+
+
+
+
+
+
+
+
+
+    
+
+    public void assignStmt() {
+        MyToken t = lexer.GetNextToken();
         if (t.getLexeme() == "assign")
-            OK(t); // be happy
+            OK(t);
         else
-            Error(t, "'assign' expected");
+            Error(t, "\'assign\' expected");
         expr();
         t = lexer.GetNextToken();
         if (t.getLexeme() == "to")
-            OK(t); // be happy
+            OK(t);
         else
             Error(t, "'to' expected");
         t = lexer.GetNextToken();
         if (t.getTokenType() == Token.TokenType.IDENTIFIER)
-            OK(t); // be happy
+            OK(t);
         else
-        Error(t, "an identifier is expected");
+            Error(t, "an identifier is expected");
     }
-
-
 
     void printStmt() {
         Token t = lexer.GetNextToken();
         if (t.getLexeme() == "print")
-            OK(t); // be happy
+            OK(t);
 
         else
             Error(t, "'print' expected");
@@ -98,13 +286,13 @@ public class MyParser {
     void repeatStmt() {
         Token t = lexer.GetNextToken();
         if (t.Lexeme == "repeat")
-            OK(t); // be happy
+            OK(t);
         else
             Error(t, "'repeat' expected");
         expr();
         t = lexer.GetNextToken();
         if (t.Lexeme == "times")
-            OK(t); // be happy
+            OK(t);
         else
             t = lexer.PeekNextToken();
         while (t.Lexeme != ";") {
@@ -117,13 +305,25 @@ public class MyParser {
     void banStmt() {
         Token t = lexer.GetNextToken();
         if (t.Lexeme == "banana")
-            OK(t); // be happy
+            OK(t);
         else
             Error(t, "'banana' expected");
     }
 
     // expr --> term { (+|-) term }
     void expr() {
+        term();
+        Token t = lexer.PeekNextToken();
+        while (t.Lexeme == "+" || t.Lexeme == "-") {
+            lexer.GetNextToken(); // consume the + or -
+            Error(t, "'times' expected");
+            term();
+            t = lexer.PeekNextToken();
+        }
+    }
+
+    // edit this
+    void expression() {
         term();
         Token t = lexer.PeekNextToken();
         while (t.Lexeme == "+" || t.Lexeme == "-") {
@@ -150,7 +350,7 @@ public class MyParser {
     void factor() {
         Token t = lexer.GetNextToken();
         if (t.Type == Token.TokenTypes.Identifier)
-            OK(t); // be happy
+            OK(t);
     }
 
   }

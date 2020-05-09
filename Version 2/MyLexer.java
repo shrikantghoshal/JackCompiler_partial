@@ -233,13 +233,13 @@ public class MyLexer {
         return tokenList.get(0);
     }
 
-    public static void main(String[] args) {
-        MyLexer trialLexer = new MyLexer(args[0]);
+    // public static void main(String[] args) {
+    //     MyLexer trialLexer = new MyLexer(args[0]);
 
-        while (trialLexer.PeekNextToken().getTokenType() != MyToken.TokenType.EOF) {
-            // System.out.println(trialLexer.getNextToken().toString());
-            trialLexer.GetNextToken().toString();
-        }
+    //     while (trialLexer.PeekNextToken().getTokenType() != MyToken.TokenType.EOF) {
+    //         // System.out.println(trialLexer.getNextToken().toString());
+    //         trialLexer.GetNextToken().toString();
+    //     }
 
-    }
+    // }
 }
