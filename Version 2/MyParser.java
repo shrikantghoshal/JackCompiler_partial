@@ -266,24 +266,30 @@ public class MyParser {
 
     public void expressionList() {
         MyToken t = lexer.GetNextToken();
-        expression();
-        t = lexer.PeekNextToken();
-        while (t.getLexeme() != "null") {
-            if (t.getLexeme() != ",")
-                Error(t, "a ',' is expected");
-            OK(t);
-            t = lexer.GetNextToken();
+        if (t.getLexeme() != "") {
             expression();
             t = lexer.PeekNextToken();
-        }
+            while (t.getLexeme() == ",") {
+                t = lexer.GetNextToken();
+                expression();
+                t = lexer.PeekNextToken();
+                if (t.getLexeme() == ")") {
+                    t = lexer.GetNextToken();
+                    OK(t);
+                    break;
+                } else if (t.getLexeme() == ",") {
+                    OK(t);
+                } else
+                    Error(t, "a ')' or ',' expected");
+            }
+        } else
+            OK(t);
     }
 
     public void expression() {
         MyToken t = lexer.GetNextToken();
         relationalExpression();
         t = lexer.PeekNextToken();
-        if (t.getLexeme() != "&" && t.getLexeme() != "|")
-            Error(t, "a '&' or '|' is expected");
         while (t.getLexeme() == "&" || t.getLexeme() == "|") {
             t = lexer.GetNextToken();
             relationalExpression();
@@ -336,11 +342,63 @@ public class MyParser {
         OK(t);
     }
 
-    public void operand(){
+    public void operand() {
         MyToken t = lexer.GetNextToken();
-        if(t.getTokenType() == )
+        if (t.getTokenType() == MyToken.TokenType.INT_LITERAL)
+            OK(t);
+        else if (t.getTokenType() == MyToken.TokenType.IDENTIFIER) {
+            t = lexer.PeekNextToken();
+            if (t.getLexeme() == ".") {
+                t = lexer.GetNextToken();
+                OK(t);
+                t = lexer.GetNextToken();
+                if (t.getTokenType() != MyToken.TokenType.IDENTIFIER)
+                    Error(t, "an identifier expected");
+                OK(t);
+                t = lexer.PeekNextToken();
+                if (t.getLexeme() == "[" || t.getLexeme() == "(") {
+                    t = lexer.GetNextToken();
+                    OK(t);
+                    if (t.getLexeme() == "[") {
+                        t = lexer.GetNextToken();
+                        expression();
+                        t = lexer.GetNextToken();
+                        if (t.getLexeme() != "]")
+                            Error(t, "a ']' is expected");
+                        OK(t);
+                    } else if (t.getLexeme() == "(") {
+                        t = lexer.GetNextToken();
+                        expressionList();
+                        t = lexer.GetNextToken();
+                        if (t.getLexeme() != ")")
+                            Error(t, "a ')' is expected");
+                        OK(t);
+                    }
+                }
+            }
+        } else if (t.getLexeme() == "(") {
+            OK(t);
+            t = lexer.GetNextToken();
+            expression();
+            t = lexer.GetNextToken();
+            if (t.getLexeme() != ")")
+                Error(t, "a ')' is expected");
+        } else if (t.getTokenType() == MyToken.TokenType.STRING_LITERAL)
+            OK(t);
+        else if (t.getLexeme() == "true")
+            OK(t);
+        else if (t.getLexeme() == "false")
+            OK(t);
+        else if (t.getLexeme() == "null")
+            OK(t);
+        else if (t.getLexeme() == "this")
+            OK(t);
+        else
+            Error(t, "unknown operand");
+
     }
 
+    
     void jackProgram(){
         Token token;
         token = 
