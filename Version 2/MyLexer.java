@@ -214,6 +214,10 @@ public class MyLexer {
 
             }
         }
+
+        // if ((stringBuild.toString().equals("true")) || stringBuild.toString().equals("false")) {
+        //     return new MyToken(stringBuild.toString(), MyToken.TokenType.BOOL_LITERAL);
+        // }
         return new MyToken(stringBuild.toString(), MyToken.TokenType.IDENTIFIER);
     }
 
