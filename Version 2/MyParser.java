@@ -35,13 +35,15 @@ public class MyParser {
         }
     }
 
-    // public void class(){
-    // MyToken t = lexer.PeekNextToken();
-    // if (t.getLexeme() = "class"){
-    // OK();
-    // t=lexer.
-    // }
-    // }
+    public void class()
+
+    {
+        MyToken t = lexer.PeekNextToken();
+        if (t.getLexeme() = "class") {
+            OK();
+            t = lexer.getClass();
+        }
+    }
 
     public void statement() {
         MyToken t = lexer.PeekNextToken();
@@ -61,31 +63,6 @@ public class MyParser {
         else
             Error(t, "unknown keyword");
     }
-
-    // public void stmt() {
-    // MyToken t = lexer.PeekNextToken();
-
-    // if (t.getLexeme() == "var")
-    // varDeclar();
-    // else if (t.getLexeme() == "let")
-    // letStmt();
-    // else if (t.getLexeme() == "do")
-    // printStmt();
-    // // doStmt();
-    // else if (t.getLexeme() == "if")
-    // assignStmt();
-    // // ifStmt();
-    // else if (t.getLexeme() == "while")
-    // repeatStmt();
-    // // elseStmt();
-    // else if (t.getLexeme() == "")
-    // banStmt();
-    // // whileStmt();
-    // else if (t.getLexeme() == "return")
-    // returnStmt();
-    // else
-    // Error(t, "unknown keyword");
-    // }
 
     public void varDeclarStatement() {
         MyToken t = lexer.GetNextToken();
@@ -398,7 +375,6 @@ public class MyParser {
 
     }
 
-    
     void jackProgram(){
         Token token;
         token = 
