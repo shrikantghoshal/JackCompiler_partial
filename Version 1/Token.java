@@ -9,14 +9,15 @@ public class Token {
     private Integer lineNumber;
     private TokenType type;
 
-
-    public Token() {
+    public Token(){
         lexeme = "";
-
     }
 
-    public void setNewLexeme() {
-        lexeme = "";
+    public Token(String inputLexeme, TokenType inputType, Integer inputLine) {
+        setLexeme(inputLexeme);
+        setTokenType(inputType);
+        setLineNumber(inputLine);
+
     }
 
     public void setLexeme(String lexemeRead) {
@@ -45,7 +46,7 @@ public class Token {
 
     @Override
     public String toString(){
-        return String.format("< " + getLexeme() + " , " + getTokenType() + " >\n");
+        return String.format("< " + getLexeme() + " , " + getTokenType() + " , " + getLineNumber() + " >\n");
     }
 
 }

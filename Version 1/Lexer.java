@@ -1,20 +1,46 @@
 import java.io.*;
 import java.util.ArrayList;
 
-
 public class Lexer {
     public PushbackReader pushbackReader = null;
 
     private int linNum;
-    int c;
+    int cursor;
 
-    private ArrayList<String> keywords;
+    public enum Keywords {
+        // Program components
+        CLASS("class"), CONSTRUCTOR("constructor"), METHOD("method"), FUNCTION("function"),
+
+        // Primitive types
+        INT("int"), BOOL("boolean"), CHAR("char"), VOID("void"),
+
+        // Variab;e declarations
+        VAR("var"), STATIC("static"), FIELD("field"),
+
+        // Statements
+        LET("let"), DO("do"), IF("if"), ELSE("else"), WHILE("while"), RETURN("return"),
+
+        // Constant values
+        TRUE("true"), FALSE("false"), NULL("null"),
+
+        // Object reference
+        THIS("this");
+
+        private String keywordName;
+
+        Keywords(String keywordClass) {
+            this.keywordName = keywordClass;
+        }
+
+        public String getKeywordName() {
+            return keywordName;
+        }
+    }
 
     public Lexer(String userInput) {
-        setKeywordArray();
         init(userInput);
-        
-        if(init(userInput)==false){
+
+        if (init(userInput) == false) {
             System.exit(0);
         }
 
@@ -48,43 +74,6 @@ public class Lexer {
 
     }
 
-    public void setKeywordArray() {
-        keywords = new ArrayList<String>(21);
-
-        // Program components
-        keywords.add("class");
-        keywords.add("constructor");
-        keywords.add("method");
-        keywords.add("function");
-
-        // Primitive types
-        keywords.add("int");
-        keywords.add("boolean");
-        keywords.add("char");
-        keywords.add("void");
-
-        // Variab;e declarations
-        keywords.add("var");
-        keywords.add("static");
-        keywords.add("field");
-
-        // Statements
-        keywords.add("let");
-        keywords.add("do");
-        keywords.add("if");
-        keywords.add("else");
-        keywords.add("while");
-        keywords.add("return");
-
-        // Constant values
-        keywords.add("true");
-        keywords.add("false");
-        keywords.add("null");
-
-        // Object reference
-        keywords.add("this");
-    }
-
     public int getLinNum() {
         return linNum;
     }
@@ -92,11 +81,13 @@ public class Lexer {
     public Token GetNextToken() throws IOException {
         Token token = new Token();
 
+        cursor = pushbackReader.read();
+
         // Loop to consume any leading whitespaces
-        while (Character.isWhitespace((char) c) && (c != -1)) {
-            if (c == '\r')
-                // linNum++;
-                c = pushbackReader.read();
+        while (Character.isWhitespace((char) cursor) && (cursor != -1)) {
+            if (cursor == '\r')
+                linNum++;
+            cursor = pushbackReader.read();
         }
 
         // Loop to consume any leading comments
@@ -106,40 +97,30 @@ public class Lexer {
                 c = pushbackReader.read();
                 if ((char) c == '/') { // Check for "//" Single line comment
                     comType = 1;
-                    if (c == '\r') {
+                    if (cursor == '\r') {
                         linNum++;
-                        c = pushbackReader.read();
+                        cursor = pushbackReader.read();
 
                         comType = 0;
                     }
 
-                } else if ((char) c == '*') { // Check for "/*" Multi-line comment start
-                    comType = 2;
-                    c = pushbackReader.read();
+                } else if ((char) cursor == '*') { // Check for "/*" Multi-line comment start
+                    
+                    cursor = pushbackReader.read();
 
-                    if ((char) c == '*') { // Check for "/**" API Documentation comment
-                        c = pushbackReader.read();
-
-                        if ((char) c == '/') {
-                            linNum++;
-                            c = pushbackReader.read();
-                            comType = 0;
-                        } else {
-                            c = pushbackReader.read();
-                        }
-                    } else if ((char) c == '/') {
+                    if ((char) cursor == '/') {
                         linNum++;
-                        c = pushbackReader.read();
+                        cursor = pushbackReader.read();
                         comType = 0;
                     } else {
-                        c = pushbackReader.read();
+                        cursor = pushbackReader.read();
                     }
                 }
             }
         } while ((comType != 0) || (comType == 1 && (char) c != '\r'));
 
         // EOF detection
-        if (c == -1) {
+        if (cursor == -1) {
             token.setTokenType(Token.TokenType.EOF);
             token.setLineNumber(linNum);
             // System.out.println(token);
@@ -148,7 +129,6 @@ public class Lexer {
 
         // Check for keywords or identifiers
         if (Character.isLetter((char) c)) {
-            token.setNewLexeme();
             while ((c != -1) && Character.isLetterOrDigit((char) c) || c == '_') {
                 token.setLexeme(String.valueOf((char) c));
                 c = pushbackReader.read();
@@ -169,7 +149,6 @@ public class Lexer {
         }
 
         if (Character.isDigit((char) c)) {
-            token.setNewLexeme();
             while ((c != -1) && Character.isDigit((char) c)) {
                 token.setLexeme(String.valueOf((char) c));
                 c = pushbackReader.read();
@@ -253,7 +232,7 @@ public class Lexer {
 
         // Check for keywords or identifiers
         if (Character.isLetter((char) c)) {
-            token.setNewLexeme();
+            // token.setNewLexeme();
             while ((c != -1) && Character.isLetterOrDigit((char) c) || c == '_') {
                 token.setLexeme(String.valueOf((char) c));
                 c = pushbackReader.read();
@@ -274,7 +253,7 @@ public class Lexer {
         }
 
         if (Character.isDigit((char) c)) {
-            token.setNewLexeme();
+            // token.setNewLexeme();
             while ((c != -1) && Character.isDigit((char) c)) {
                 token.setLexeme(String.valueOf((char) c));
                 c = pushbackReader.read();
@@ -285,7 +264,7 @@ public class Lexer {
             return token;
         }
 
-        token.setNewLexeme();
+        // token.setNewLexeme();
         token.setLexeme(String.valueOf((char) c));
         token.setTokenType(Token.TokenType.SYMBOL);
         // System.out.println(token);

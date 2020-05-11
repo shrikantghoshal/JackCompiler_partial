@@ -1,10 +1,9 @@
-
 public class MyParser {
 
     private MyLexer lexer;
 
-    public MyParser() {
-
+    public MyParser(String userInput) {
+        init(userInput);
     }
 
     public void init(String inputFileName) {
@@ -35,13 +34,131 @@ public class MyParser {
         }
     }
 
-    public void class()
+    public void jackClass() {
+        MyToken t = lexer.GetNextToken();
+        if (t.getLexeme() != "class")
+            Error(t, "a 'class' is expected");
+        OK(t);
+        t = lexer.GetNextToken();
+        if (t.getTokenType() != MyToken.TokenType.IDENTIFIER)
+            Error(t, "an identifier is expected");
+        OK(t);
+        t = lexer.GetNextToken();
+        if (t.getLexeme() != "{")
+            Error(t, "a '{' is expected");
+        OK(t);
+        t = lexer.PeekNextToken();
+        while (t.getLexeme() != "}") {
+            memberDeclar();
+            t = lexer.PeekNextToken();
+        }
+        t = lexer.GetNextToken();
+        if (t.getLexeme() != "}")
+            Error(t, "a '}' is expected");
+        OK(t);
+    }
 
-    {
+    public void memberDeclar() {
+        MyToken t = lexer.GetNextToken();
+        if (t.getLexeme() == "static" || t.getLexeme() == "field")
+            classVarDeclar();
+        else if (t.getLexeme() == "constructor" || t.getLexeme() == "function" || t.getLexeme() == "method")
+            subRoutineDeclar();
+        else
+            Error(t, "unknown member");
+    }
+
+    public void classVarDeclar() {
+        MyToken t = lexer.GetNextToken();
+        if (t.getLexeme() != "static" && t.getLexeme() != "field")
+            Error(t, "'static' or 'field' expected");
+        OK(t);
+        t = lexer.GetNextToken();
+        type();
+        t = lexer.GetNextToken();
+        if (t.getTokenType() != MyToken.TokenType.IDENTIFIER)
+            Error(t, "an identifier is expected");
+        OK(t);
+        t = lexer.PeekNextToken();
+        while (t.getLexeme() != ";") {
+            t = lexer.GetNextToken();
+            OK(t);
+            t = lexer.GetNextToken();
+            if (t.getLexeme() != ",")
+                Error(t, "a ',' is expected");
+            OK(t);
+            t = lexer.GetNextToken();
+            if (t.getTokenType() != MyToken.TokenType.IDENTIFIER)
+                Error(t, "an identifier is expected");
+            OK(t);
+            t = lexer.PeekNextToken();
+        }
+        if (t.getLexeme() != ";")
+            Error(t, "a ';' is expected");
+        OK(t);
+
+    }
+
+    public void type() {
+        MyToken t = lexer.GetNextToken();
+        if (t.getLexeme() != "int" && t.getLexeme() != "char" && t.getLexeme() != "boolean"
+                && t.getTokenType() != MyToken.TokenType.IDENTIFIER)
+            Error(t, "unknown type");
+        OK(t);
+    }
+
+    public void subRoutineDeclar() {
+        MyToken t = lexer.GetNextToken();
+        if (t.getLexeme() != "constructor" && t.getLexeme() != "function" && t.getLexeme() == "method")
+            Error(t, "''constructor' , 'function' or 'method' is expected");
+        OK(t);
+        t = lexer.PeekNextToken();
+        if ((t.getLexeme() != "int" && t.getLexeme() != "char" && t.getLexeme() != "boolean"
+                && t.getTokenType() != MyToken.TokenType.IDENTIFIER) && t.getLexeme() != "void") {
+            Error(t, "a type or void is expected");
+            type();
+            if (t.getLexeme() == "void")
+                t = lexer.GetNextToken();
+            OK(t);
+            t = lexer.GetNextToken();
+            if (t.getTokenType() != MyToken.TokenType.IDENTIFIER)
+                Error(t, "an identifier is expected");
+            OK(t);
+            t = lexer.GetNextToken();
+            if (t.getLexeme() == "(") {
+                t = lexer.GetNextToken();
+                OK(t);
+                paramList();
+                t = lexer.GetNextToken();
+                if (t.getLexeme() != ")")
+                    Error(t, "a ')' is expected");
+            } else
+                Error(t, "a '(' is expected");
+            statementBlock();
+        }
+    }
+
+    public void paramList() {
         MyToken t = lexer.PeekNextToken();
-        if (t.getLexeme() = "class") {
-            OK();
-            t = lexer.getClass();
+        if (t.getLexeme() != ")") {
+            type();
+            t = lexer.GetNextToken();
+            if (t.getTokenType() != MyToken.TokenType.IDENTIFIER)
+                Error(t, "an identifier is expected");
+            OK(t);
+            t = lexer.PeekNextToken();
+            while (t.getLexeme() != ")") {
+                t = lexer.GetNextToken();
+                if (t.getLexeme() != ",")
+                    Error(t, "a ',' or ')' is expected)");
+                OK(t);
+                type();
+                t = lexer.GetNextToken();
+                if (t.getTokenType() != MyToken.TokenType.IDENTIFIER)
+                    Error(t, "an identifier is expected");
+                OK(t);
+                t = lexer.PeekNextToken();
+            }
         }
     }
 
@@ -69,13 +186,25 @@ public class MyParser {
         if (t.getLexeme() != "var")
             Error(t, "an keyword is expected: 'var'");
         OK(t);
-
+        type();
         t = lexer.GetNextToken();
         if (t.getTokenType() != MyToken.TokenType.IDENTIFIER)
             Error(t, "an identifier is expected");
         OK(t);
+        t = lexer.PeekNextToken();
+        while (t.getLexeme() != ";") {
+            if (t.getLexeme() != ",")
+                Error(t, "a ',' or ';' is expected");
+            t = lexer.GetNextToken();
+            OK(t);
+            t = lexer.GetNextToken();
+            if (t.getTokenType() != MyToken.TokenType.IDENTIFIER)
+                Error(t, "an identifier is expected");
+            OK(t);
+            t = lexer.PeekNextToken();
+        }
         t = lexer.GetNextToken();
-
+        OK(t);
     }
 
     public void letStatement() {
@@ -106,7 +235,6 @@ public class MyParser {
             if (t.getLexeme() != "=")
                 Error(t, "a '=' is expected");
             OK(t);
-            t = lexer.GetNextToken();
             expression();
             t = lexer.GetNextToken();
             if (t.getLexeme() != ";")
@@ -115,7 +243,6 @@ public class MyParser {
 
         } else if (t.getLexeme() == "=") {
             OK(t);
-            t = lexer.GetNextToken();
             expression();
             t = lexer.GetNextToken();
             if (t.getLexeme() != ";")
@@ -134,7 +261,6 @@ public class MyParser {
         if (t.getLexeme() != "(")
             Error(t, "a '(' is expected");
         OK(t);
-        t = lexer.GetNextToken();
         expression();
         t = lexer.GetNextToken();
         if (t.getLexeme() != ")")
@@ -177,7 +303,6 @@ public class MyParser {
             Error(t, "a '(' is expected");
 
         OK(t);
-        t = lexer.GetNextToken();
         expression();
         t = lexer.GetNextToken();
         if (t.getLexeme() != ")")
@@ -192,8 +317,6 @@ public class MyParser {
         if (t.getLexeme() != "do")
             Error(t, "an identifier is expected: 'do'");
         OK(t);
-
-        t = lexer.GetNextToken();
         subRoutineCall();
         t = lexer.GetNextToken();
         if (t.getLexeme() != ";")
@@ -228,39 +351,34 @@ public class MyParser {
                     Error(t, "an identifier is expected");
                 OK(t);
             }
-            t = lexer.PeekNextToken();
-            while (t.getLexeme() != ")") {
-                expressionList();
-                t = lexer.PeekNextToken();
-            }
             t = lexer.GetNextToken();
+            if (t.getLexeme() == "(") {
+                expressionList();
+                t = lexer.GetNextToken();
+                if (t.getLexeme() != ")")
+                    Error(t, "a ')' is expected");
+            } else
+                Error(t, "a '(' is expected");
         } else
             Error(t, "a '.' or '(' is expected");
-        if (t.getLexeme() != ")")
-            Error(t, "a ')' is expected");
         OK(t);
     }
 
     public void expressionList() {
-        MyToken t = lexer.GetNextToken();
-        if (t.getLexeme() != "") {
+        MyToken t = lexer.PeekNextToken();
+        if (t.getLexeme() != ")") {
             expression();
             t = lexer.PeekNextToken();
-            while (t.getLexeme() == ",") {
+            while (t.getLexeme() != ")") {
                 t = lexer.GetNextToken();
+                if (t.getLexeme() != ",")
+                    Error(t, "a ',' or ')' is expected)");
+                OK(t);
                 expression();
                 t = lexer.PeekNextToken();
-                if (t.getLexeme() == ")") {
-                    t = lexer.GetNextToken();
-                    OK(t);
-                    break;
-                } else if (t.getLexeme() == ",") {
-                    OK(t);
-                } else
-                    Error(t, "a ')' or ',' expected");
             }
-        } else
-            OK(t);
+        }
+        OK(t);
     }
 
     public void expression() {
@@ -375,8 +493,14 @@ public class MyParser {
 
     }
 
-    void jackProgram(){
-        Token token;
-        token = 
+    public void jackProgram(){
+        MyToken t = lexer.PeekNextToken();
+        while(t.getTokenType()!=MyToken.TokenType.EOF){
+            jackClass();
+            t=lexer.PeekNextToken();
+        }
     }
+
+    
+
 }
