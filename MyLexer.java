@@ -82,11 +82,11 @@ public class MyLexer {
     public void removeComments(String inputFile) throws IOException {
         FileReader fread = new FileReader(inputFile);
 
-        String content = null;
+        
         StringBuilder stringBuild = new StringBuilder();
         String separateLine = System.getProperty("line.separator"); // Java API
         LineNumberReader lineRead = new LineNumberReader(fread);
-        content = lineRead.readLine();
+        String content = lineRead.readLine();
         while (content != (null)) {
             int inLineCom = content.indexOf("//");
             if (inLineCom != -1)
@@ -98,16 +98,8 @@ public class MyLexer {
         }
         String rmvMultilineCom = stringBuild.toString();
         String noComments = rmvMultilineCom.replaceAll("/\\*(?:.|[\\n\\r])*?\\*/", " ");
-
-        // List<String> conversionStrList = new
-        // ArrayList<String>(Arrays.asList(noComments.split("\n")));
+        
         charCode.addAll(Arrays.asList(noComments.split("(?!^)")));
-
-        // for (int count = 0; count < conversionStrList.size(); count++) { // iterate
-        // through lines
-        // charCode.addAll(conversionStrList.get(count).split("(?!^)"));
-        // }
-
         allTokens();
 
         lineRead.close();
@@ -215,9 +207,6 @@ public class MyLexer {
             }
         }
 
-        // if ((stringBuild.toString().equals("true")) || stringBuild.toString().equals("false")) {
-        //     return new MyToken(stringBuild.toString(), MyToken.TokenType.BOOL_LITERAL);
-        // }
         return new MyToken(stringBuild.toString(), MyToken.TokenType.IDENTIFIER);
     }
 
@@ -237,13 +226,13 @@ public class MyLexer {
         return tokenList.get(0);
     }
 
-    // public static void main(String[] args) {
-    //     MyLexer trialLexer = new MyLexer(args[0]);
+    public static void main(String[] args) {
+        MyLexer trialLexer = new MyLexer("Main.jack");
 
-    //     while (trialLexer.PeekNextToken().getTokenType() != MyToken.TokenType.EOF) {
-    //         // System.out.println(trialLexer.getNextToken().toString());
-    //         trialLexer.GetNextToken().toString();
-    //     }
+        while (trialLexer.PeekNextToken().getTokenType() != MyToken.TokenType.EOF) {
+            // System.out.println(trialLexer.getNextToken().toString());
+            System.out.println(trialLexer.GetNextToken());
+        }
 
-    // }
+    }
 }

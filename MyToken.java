@@ -25,8 +25,8 @@ public class MyToken {
 
 
     public void setLexeme(String lexemeRead) {
-        lexeme += lexemeRead;
-        System.out.println(lexemeRead);
+        lexeme = lexemeRead;
+        // System.out.println(lexemeRead);
     }
 
     public void setTokenType(TokenType tokenRead) {
