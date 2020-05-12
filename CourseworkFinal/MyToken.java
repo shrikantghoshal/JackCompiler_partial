@@ -6,16 +6,19 @@ public class MyToken {
 
     }
 
+    //default constructor
     public MyToken(){
         lexeme = "";
     }
 
+    //lexer construction didn't allow for line numbers so this is an ideal constructor that is not meant to be used
     public MyToken(String inputLexeme, TokenType inputType, int inputLine){
         setLexeme(inputLexeme);
         setTokenType(inputType);
         setLineNumber(inputLine);
     }
 
+    //constructor that only allows for lexeme and tokenType
     public MyToken(String inputLexeme, TokenType inputType){
         setLexeme(inputLexeme);
         setTokenType(inputType);

@@ -14,6 +14,7 @@ public class MyParser {
         System.out.println("Parser initialised");
     }
 
+    //output to terminal "Error at or near '(following lexeme)', (an errorMessage is expected)" and exit the program
     public void Error(MyToken t, String message) {
 
         System.out.println("Error at or near '" + t.getLexeme() + "', " + message);
@@ -21,10 +22,21 @@ public class MyParser {
         System.exit(1);
     }
 
+    // output to terminal "lexeme:  OK"
     public void OK(MyToken t) {
         System.out.println(t.getLexeme() + ":  OK ");
     }
 
+     //jackProgram-->{jackClass}       loop till EOF
+     public void jackProgram() {
+        MyToken t = lexer.PeekNextToken();
+        while (t.getTokenType() != MyToken.TokenType.EOF) {
+            jackClass();
+            t = lexer.PeekNextToken();
+        }
+    }
+
+    //jackClass-->class identifier->{memberDeclar}
     public void jackClass() {
         MyToken t = lexer.GetNextToken();
         if (!t.getLexeme().equals("class"))
@@ -49,6 +61,7 @@ public class MyParser {
         OK(t);
     }
 
+    //memberDeclar-->classVarDeclar | subRoutineDeclar
     public void memberDeclar() {
         MyToken t = lexer.PeekNextToken();
         if (t.getLexeme().equals("static") || t.getLexeme().equals("field"))
@@ -60,6 +73,7 @@ public class MyParser {
             Error(t, "unknown member");
     }
 
+    //classVarDeclar-->(static|field)->type identifier->{,identifier} ;
     public void classVarDeclar() {
         MyToken t = lexer.GetNextToken();
         if (!t.getLexeme().equals("static") && !t.getLexeme().equals("field"))
@@ -91,6 +105,7 @@ public class MyParser {
 
     }
 
+    // type-->int | char | boolean | identifier
     public void type() {
         MyToken t = lexer.GetNextToken();
         if (!t.getLexeme().equals("int") && !t.getLexeme().equals("char") && !t.getLexeme().equals("boolean")
@@ -99,6 +114,7 @@ public class MyParser {
         OK(t);
     }
 
+    //subRoutineDeclar-->(constructor|function|method)->(type|void)->identifier (paramList) statementBlock
     public void subRoutineDeclar() {
         MyToken t = lexer.GetNextToken();
         if (!t.getLexeme().equals("constructor") && !t.getLexeme().equals("function")
@@ -130,6 +146,7 @@ public class MyParser {
 
     }
 
+    //paramList-->type identifier->{, type identifier} | empty
     public void paramList() {
         MyToken t = lexer.PeekNextToken();
         if (!t.getLexeme().equals(")")) {
@@ -154,6 +171,7 @@ public class MyParser {
         }
     }
 
+    //statement
     public void statement() {
         MyToken t = lexer.PeekNextToken();
 
@@ -173,6 +191,7 @@ public class MyParser {
             Error(t, "unknown keyword");
     }
 
+    //varDeclarStatement-->var type->identifier->{,identifier} ;
     public void varDeclarStatement() {
         MyToken t = lexer.GetNextToken();
         if (!t.getLexeme().equals("var"))
@@ -199,6 +218,7 @@ public class MyParser {
         OK(t);
     }
 
+    //letStatement-->let identifier->[expression] = expression ;
     public void letStatement() {
         MyToken t = lexer.GetNextToken();
         if (!t.getLexeme().equals("let"))
@@ -244,6 +264,7 @@ public class MyParser {
         }
     }
 
+    //ifStatement-->if(expression) statementBlock->[else statementBlock]
     public void ifStatement() {
         MyToken t = lexer.GetNextToken();
         if (!t.getLexeme().equals("if"))
@@ -268,6 +289,8 @@ public class MyParser {
 
     }
 
+    // statementBlock-->{statement} 
+    // (this is a recursive statement method) -> named subroutineBody in the jack grammar description)
     public void statementBlock() {
         MyToken t = lexer.GetNextToken();
         if (!t.getLexeme().equals("{"))
@@ -284,6 +307,7 @@ public class MyParser {
         OK(t);
     }
 
+    // whileStatement-->while (expression){statementBlock}
     public void whileStatement() {
         MyToken t = lexer.GetNextToken();
         if (!t.getLexeme().equals("while"))
@@ -304,6 +328,7 @@ public class MyParser {
         statementBlock();
     }
 
+    // doStatement-->do subRoutineCall;
     public void doStatement() {
         MyToken t = lexer.GetNextToken();
         if (!t.getLexeme().equals("do"))
@@ -316,13 +341,14 @@ public class MyParser {
         OK(t);
     }
 
+    // returnStatement-->return[expression];
     public void returnStatement() {
         MyToken t = lexer.PeekNextToken();
         if (!t.getLexeme().equals("return"))
             Error(t, "an identifier is expected: 'return'");
         MyToken returnToken = lexer.GetNextToken();
         OK(returnToken);
-        t=lexer.PeekNextToken();
+        t = lexer.PeekNextToken();
         if (!t.getLexeme().equals(";")) {
             expression();
             t = lexer.PeekNextToken();
@@ -332,6 +358,7 @@ public class MyParser {
 
     }
 
+    // subRoutineCall-->identifier[.identifier](expressionList)
     public void subRoutineCall() {
         MyToken t = lexer.GetNextToken();
         if (t.getTokenType() != MyToken.TokenType.IDENTIFIER)
@@ -359,7 +386,7 @@ public class MyParser {
         OK(t);
     }
 
-    // expressionList-->expression{,expression};
+    // expressionList-->expression {,expression} | empty
     public void expressionList() {
         MyToken t = lexer.PeekNextToken();
         if (!t.getLexeme().equals(")")) {
@@ -377,7 +404,7 @@ public class MyParser {
         OK(t);
     }
 
-    // expression-->relationalExpression->((&|"|")relationalExpression) recursive
+    // expression-->relationalExpression->((&| "|" )relationalExpression)
     public void expression() {
         MyToken t = lexer.PeekNextToken();
         relationalExpression();
@@ -391,7 +418,6 @@ public class MyParser {
     }
 
     // relationalExpression-->arithmeticExpression->((=|<|>)arithmeticExpression)
-    // recursive
     public void relationalExpression() {
         MyToken t = lexer.PeekNextToken();
         arithmeticExpression();
@@ -404,7 +430,7 @@ public class MyParser {
         }
     }
 
-    // arithmeticExpression-->term->((+|-)term) recursive
+    // arithmeticExpression-->term->((+|-)term)
     public void arithmeticExpression() {
         MyToken t = lexer.PeekNextToken();
         term();
@@ -417,7 +443,7 @@ public class MyParser {
         }
     }
 
-    // term-->factor->loop((*|/)factor) recursive
+    // term-->factor->loop((*|/)factor)
     public void term() {
         MyToken t = lexer.PeekNextToken();
         factor();
@@ -441,6 +467,7 @@ public class MyParser {
             operand();
     }
 
+    //operand
     public void operand() {
         MyToken t = lexer.PeekNextToken();
         if (t.getTokenType() == MyToken.TokenType.INT_LITERAL) {
@@ -520,14 +547,7 @@ public class MyParser {
             Error(t, "unknown operand");
     }
 
-    public void jackProgram() {
-        MyToken t = lexer.PeekNextToken();
-        while (t.getTokenType() != MyToken.TokenType.EOF) {
-            jackClass();
-            t = lexer.PeekNextToken();
-        }
-    }
-
+   
     // testing the parser
     public static void main(String[] args) {
         MyParser trialParser = new MyParser(args[0]);
